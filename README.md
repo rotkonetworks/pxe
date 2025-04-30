@@ -15,12 +15,18 @@ great workaround for paying $180.
 
 ## 🔧 Usage (iPXE Shell)
 
+boot into pxe
+```ipmitool
+ipmitool -I lanplus -H <bmc-ip> -U <user> -P '<pass>' chassis bootdev pxe
+ipmitool -I lanplus -H <bmc-ip> -U <user> -P '<pass>' power cycle
+```
+
+boot straight into Arch Linux Live over HTTPS.
+
 ```ipxe
 dhcp
 chain https://pxe.rotko.net/ipxe/archlinux.efi
 ```
-
-Boots straight into Arch Linux Live over HTTPS.
 
 ---
 
