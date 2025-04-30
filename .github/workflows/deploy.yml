@@ -2,7 +2,7 @@ name: Deploy PXE to pxe.rotko.net
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   deploy:

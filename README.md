@@ -12,3 +12,8 @@ PXE_SSH_KEY: your private SSH key for pxe@pxe.rotko.net (use cat ~/.ssh/id_ed255
 
 Must match the public key in ~pxe/.ssh/authorized_keys on the server
 
+
+## srv setup
+sudo usermod -aG docker pxe
+
+&& setup ur webproxy
