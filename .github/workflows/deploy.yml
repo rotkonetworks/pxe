@@ -1,0 +1,33 @@
+name: Deploy PXE to pxe.rotko.net
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Sync to pxe.rotko.net
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: pxe.rotko.net
+        username: pxe
+        key: ${{ secrets.PXE_SSH_KEY }}
+        source: "."
+        target: "~/pxe"
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: pxe.rotko.net
+        username: pxe
+        key: ${{ secrets.PXE_SSH_KEY }}
+        script: |
+          cd ~/pxe
+          docker compose down
+          docker compose up -d --build

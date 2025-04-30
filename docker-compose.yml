@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+  pxe:
+    build: .
+    ports:
+      - "8089:80"
+    restart: unless-stopped
