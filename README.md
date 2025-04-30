@@ -1,19 +1,65 @@
 # PXE Boot Server
 
-Serves Arch Linux netboot iPXE script over HTTPS via Docker + Caddy.
+Minimal PXE boot service for Arch Linux using iPXE + Docker + Caddy, auto-deployed to `pxe.rotko.net`.
 
+---
 
-## gh setup
-Go to Settings → Secrets → Actions
+## 🤬 Motivation
 
-Add:
+> `This function requires SFT-DCMS-SINGLE license!`
 
-PXE_SSH_KEY: your private SSH key for pxe@pxe.rotko.net (use cat ~/.ssh/id_ed25519)
+Supermicro IPMI virtual media is locked behind a paid license. This repo is
+great workaround for paying $180.
 
-Must match the public key in ~pxe/.ssh/authorized_keys on the server
+---
 
+## 🔧 Usage (iPXE Shell)
 
-## srv setup
+```ipxe
+dhcp
+chain https://pxe.rotko.net/ipxe/archlinux.efi
+```
+
+Boots straight into Arch Linux Live over HTTPS.
+
+---
+
+## 🐳 Local Docker Setup
+
+```bash
+docker compose up -d --build
+```
+
+Serves content from `./ipxe` on `localhost:8089`.
+
+---
+
+## 🖥️ Remote Server Setup
+
+```bash
+sudo useradd -m pxe
 sudo usermod -aG docker pxe
+su pxe
+ssh-keygen && cat ~/.ssh/.pub -> authorized_keys
+```
 
-&& setup ur webproxy
+Ensure Docker is installed and Caddy reverse-proxies `localhost:8089` on `pxe.rotko.net`.
+
+---
+
+## 🚀 GitHub Deployment
+
+This repo auto-deploys to the `pxe` user on `pxe.rotko.net`.
+
+### ✅ Setup:
+
+1. Go to **GitHub → Settings → Secrets → Actions**
+2. Add:
+
+```
+PXE_SSH_KEY = your private key (~/.ssh/id_ed25519)
+```
+
+Must match public key in `~pxe/.ssh/authorized_keys` on the server.
+
+---
