@@ -1,8 +1,20 @@
-name: Deploy PXE to pxe.rotko.net
+name: Deploy PXE Server
 
 on:
-  push:
-    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target PXE server (IP or hostname)"
+        default: "pxe.rotko.net"
+        required: true
+      username:
+        description: "SSH username"
+        default: "pxe"
+        required: true
+      target_path:
+        description: "Remote path to deploy"
+        default: "~/pxe"
+        required: true
 
 jobs:
   deploy:
@@ -12,22 +24,22 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Sync to pxe.rotko.net
+    - name: Sync to server
       uses: appleboy/scp-action@v0.1.7
       with:
-        host: pxe.rotko.net
-        username: pxe
+        host: ${{ inputs.host }}
+        username: ${{ inputs.username }}
         key: ${{ secrets.PXE_SSH_KEY }}
         source: "."
-        target: "~/pxe"
+        target: ${{ inputs.target_path }}
 
-    - name: Deploy via SSH
+    - name: Deploy containers
       uses: appleboy/ssh-action@v0.1.7
       with:
-        host: pxe.rotko.net
-        username: pxe
+        host: ${{ inputs.host }}
+        username: ${{ inputs.username }}
         key: ${{ secrets.PXE_SSH_KEY }}
         script: |
-          cd ~/pxe
+          cd ${{ inputs.target_path }}
           docker compose down
           docker compose up -d --build

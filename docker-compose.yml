@@ -1,8 +1,20 @@
-version: "3.9"
-
 services:
-  pxe:
+
+  http:
     build: .
     ports:
       - "8089:80"
+    restart: unless-stopped
+
+  tftp-dhcp:
+    image: alpine
+    command: >
+      sh -c "apk add --no-cache dnsmasq &&
+             dnsmasq -d -C /etc/dnsmasq.conf"
+    volumes:
+      - ./ipxe:/tftpboot:ro
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
+    network_mode: "host"  # needed for DHCP + TFTP on correct ports
+    cap_add:
+      - NET_ADMIN
     restart: unless-stopped
