@@ -1,71 +1,41 @@
-# PXE Boot Server
+# pxe
 
-Minimal PXE boot service for Arch Linux using iPXE + Docker + Caddy, auto-deployed to `pxe.rotko.net`.
+PXE boot service for Arch Linux. iPXE binary served over HTTPS via nginx in
+Docker, fronted by Caddy at `pxe.rotko.net`. Optional dnsmasq container provides
+DHCP + TFTP on the LAN.
 
----
+Avoids the SFT-DCMS-SINGLE license required for Supermicro IPMI virtual media.
 
-## 🤬 Motivation
+## Boot a host
 
-> `This function requires SFT-DCMS-SINGLE license!`
+Force PXE on next boot and power-cycle via IPMI:
 
-Supermicro IPMI virtual media is locked behind a paid license. This repo is
-great workaround for paying $180.
+    ipmitool -I lanplus -H <bmc> -U <user> -P <pass> chassis bootdev pxe
+    ipmitool -I lanplus -H <bmc> -U <user> -P <pass> power cycle
 
----
+In the iPXE shell:
 
-## 🔧 Usage (iPXE Shell)
+    dhcp
+    chain https://pxe.rotko.net/ipxe/archlinux.efi
 
-boot into pxe
-```ipmitool
-ipmitool -I lanplus -H <bmc-ip> -U <user> -P '<pass>' chassis bootdev pxe
-ipmitool -I lanplus -H <bmc-ip> -U <user> -P '<pass>' power cycle
-```
+## Run
 
-boot straight into Arch Linux Live over HTTPS.
+    docker compose up -d --build
 
-```ipxe
-dhcp
-chain https://pxe.rotko.net/ipxe/archlinux.efi
-```
+`http`: nginx serving `./ipxe` on `:8089`.
+`tftp-dhcp`: dnsmasq on host network for DHCP + TFTP. Edit `dnsmasq.conf` for
+your LAN before starting.
 
----
+## Server
 
-## 🐳 Local Docker Setup
+    useradd -m pxe
+    usermod -aG docker pxe
 
-```bash
-docker compose up -d --build
-```
+Append the deploy public key to `~pxe/.ssh/authorized_keys`. Caddy proxies
+`localhost:8089` to `pxe.rotko.net`.
 
-Serves content from `./ipxe` on `localhost:8089`.
+## Deploy
 
----
-
-## 🖥️ Remote Server Setup
-
-```bash
-sudo useradd -m pxe
-sudo usermod -aG docker pxe
-su pxe
-ssh-keygen && cat ~/.ssh/.pub -> authorized_keys
-```
-
-Ensure Docker is installed and Caddy reverse-proxies `localhost:8089` on `pxe.rotko.net`.
-
----
-
-## 🚀 GitHub Deployment
-
-This repo auto-deploys to the `pxe` user on `pxe.rotko.net`.
-
-### ✅ Setup:
-
-1. Go to **GitHub → Settings → Secrets → Actions**
-2. Add:
-
-```
-PXE_SSH_KEY = your private key (~/.ssh/id_ed25519)
-```
-
-Must match public key in `~pxe/.ssh/authorized_keys` on the server.
-
----
+Push to master deploys to the `pxe` user over SSH. Set the `PXE_SSH_KEY` secret
+(private key) under Settings → Secrets → Actions; its public half must be in
+`~pxe/.ssh/authorized_keys`.
